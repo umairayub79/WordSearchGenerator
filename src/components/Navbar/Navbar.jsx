@@ -9,7 +9,7 @@ const Navbar = () => {
             <p className="text-xl font-bold dark:text-gray-200">WordSearch Generator</p>
           </div>
           <div>
-            <a href="https://github.com/umairayub79/WordSearchPuzzleGenerator" target="_blank">
+            <a href="https://github.com/umairayub79/WordSearchGenerator" target="_blank">
               <FaGithub className="w-7 h-7" />
             </a>
           </div>
