@@ -6,23 +6,31 @@ import { Button, Input, Select, Option, Checkbox } from "@material-tailwind/reac
 function App() {
   const [words, setWords] = useState([]);
   const [size, setSize] = useState(12);
-  const [selectCharset, setCharset] = useState('balochi')
-  const [highlight, setHighlight] = useState(false)
+  const [selectCharset, setCharset] = useState('balochi');
+  const [highlight, setHighlight] = useState(false);
+  const [errorSize, setErrorSize] = useState(false);
+  const [errorWords, setErrorWords] = useState(false);
   const inputRefSize = useRef(null);
   const inputRefWords = useRef(null);
 
-
   const handleClick = () => {
+    const size = parseInt(inputRefSize.current.value);
     const words = inputRefWords.current.value;
-    const size = inputRefSize.current.value;
 
-    if (size > 1 && size < 55) {
-      setSize(size);
+    if (isNaN(size) || size < 5 || size > 50) {
+      setErrorSize(true);
+      return;
     } else {
-      setSize(12)
+      setErrorSize(false);
+      setSize(size);
     }
-    if (words.length > 0 || words != ['']) {
-      setWords(words.split(","));
+
+    if (words.trim().length === 0) {
+      setErrorWords(true);
+      return;
+    } else {
+      setErrorWords(false);
+      setWords(words.split(",").map(word => word.trim()));
     }
   };
 
@@ -31,19 +39,19 @@ function App() {
       <Navbar />
       <div className="w-screen p-4">
         <div className="flex w-full flex-col gap-6 rounded-md bg-white bg-clip-border text-gray-700 shadow-md p-5">
-          <Input inputRef={inputRefSize} variant="static" label="Size" placeholder="Size" type="number" />
+          <Input inputRef={inputRefSize} variant="static" label="Size" placeholder="Size" type="number" error={errorSize} />
+          {errorSize && <p className="text-sm text-red-500">Size must be an integer between 5 and 50 (inclusive)</p>}
           <Select label="Character set" value={selectCharset} onChange={(e) => setCharset(e)}>
             <Option value="english">English</Option>
             <Option value="balochi">بلوچی</Option>
           </Select>
-          <Input inputRef={inputRefWords} variant="standard" label="Add words separated by commas" />
-
+          <Input inputRef={inputRefWords} variant="standard" label="Add words separated by commas" error={errorWords} />
+          {errorWords && <p className="text-sm text-red-500">Words cannot be empty</p>}
           <Button className="mt-10" onClick={handleClick}>
             Create
           </Button>
           <Checkbox color="blue" label="Highlight words" onChange={(e) => setHighlight(e.target.checked)} checked={highlight} />
         </div>
-
       </div>
       <div className="flex w-full flex-col rounded-md bg-clip-border text-gray-700 shadow-md m-10 p-5">
         {words.length > 0 ? <WordSearch size={size} words={words} charset={selectCharset} highlight={highlight} /> : <p>Wordsearch not created yet <br /> Choose options and click Create to generate a wordsearch.</p>}
