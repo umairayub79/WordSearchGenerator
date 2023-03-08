@@ -10,8 +10,14 @@ function App() {
   const [highlight, setHighlight] = useState(false);
   const [errorSize, setErrorSize] = useState(false);
   const [errorWords, setErrorWords] = useState(false);
+  const [errorWordsMessage, setErrorWordsMessage] = useState('')
   const inputRefSize = useRef(null);
   const inputRefWords = useRef(null);
+
+  const englishPattern = /^[a-zA-Z,]*$/;
+  const balochiPattern = /^[\u0600-\u06FF,\s]*$/;
+
+
 
   const handleClick = () => {
     const size = parseInt(inputRefSize.current.value);
@@ -26,13 +32,26 @@ function App() {
     }
 
     if (words.trim().length === 0) {
+      setErrorWordsMessage("Words cannot be empty")
       setErrorWords(true);
       return;
     } else {
-      setErrorWords(false);
+      const pattern = selectCharset === 'english' ? englishPattern : balochiPattern;
+      if (!pattern.test(words.trim())) {
+        if (selectCharset === 'english') {
+          setErrorWordsMessage("Words may only contain English letters")
+        } else {
+          setErrorWordsMessage("Words may only contain Balochi letters")
+        }
+        setErrorWords(true);
+        return;
+      }
+      setErrorWords(false)
       setWords(words.split(",").map(word => word.trim()));
     }
+
   };
+
 
   return (
     <div className="min-h-[100vh] min-w-[100vw] flex flex-col items-center content-center">
@@ -41,12 +60,12 @@ function App() {
         <div className="flex w-full flex-col gap-6 rounded-md bg-white bg-clip-border text-gray-700 shadow-md p-5">
           <Input inputRef={inputRefSize} variant="static" label="Size" placeholder="Size" type="number" error={errorSize} />
           {errorSize && <p className="text-sm text-red-500">Size must be an integer between 5 and 50 (inclusive)</p>}
-          <Select label="Character set" value={selectCharset} onChange={(e) => setCharset(e)}>
+          <Select label="Character set" value={selectCharset} onChange={(e) => { setCharset(e); inputRefWords.current.value = ""; setWords([]); setErrorWordsMessage(''); setErrorWords(false) }}>
             <Option value="english">English</Option>
             <Option value="balochi">بلوچی</Option>
           </Select>
           <Input inputRef={inputRefWords} variant="standard" label="Add words separated by commas" error={errorWords} />
-          {errorWords && <p className="text-sm text-red-500">Words cannot be empty</p>}
+          {errorWords && <p className="text-sm text-red-500">{errorWordsMessage}</p>}
           <Button className="mt-10" onClick={handleClick}>
             Create
           </Button>
