@@ -9,47 +9,86 @@ const WordSearch = ({ words, size, charset, highlight }) => {
 
   // function to generate a word search grid
   function generateGrid(size, words, letters) {
-    const grid = []
-    for (let i = 0; i < size; i++) {
-      const row = [];
-      for (let j = 0; j < size; j++) {
-        // add a random letter to each cell
-        row.push(letters[Math.floor(Math.random() * letters.length)]);
-      }
-      grid.push(row);
-    }
+    const grid = Array.from(Array(size), () => new Array(size).fill(null));
+    const highlightedItems = []
 
-    // place the words in the grid (if there are any)
-    if (words.length > 0) {
-      let items = []
-      words.forEach(word => {
-        let x, y, dx, dy;
-        do {
-          // pick a random starting position
-          x = Math.floor(Math.random() * size);
-          y = Math.floor(Math.random() * size);
+    // Insert each word into the grid at a random location and orientation
+    for (const word of words) {
+      const wordLength = word.length;
+      const maxIterations = 1000;
+      let iterations = 0;
 
-          // pick a random direction
-          const direction = Math.random() < 0.5 ? "horizontal" : "vertical";
-          dx = direction === "horizontal" ? 1 : 0;
-          dy = direction === "vertical" ? 1 : 0;
+      while (iterations < maxIterations) {
+        const orientation = Math.floor(Math.random() * 4); // 0 = horizontal, 1 = vertical, 2 = diagonal up, 3 = diagonal down
+        let startRow, startCol, rowStep, colStep;
 
-          // check if word fits in the grid from this position and direction
-        } while (x + dx * (word.length - 1) >= size || y + dy * (word.length - 1) >= size);
-
-        // place the word in the grid
-        for (let i = 0; i < word.length; i++) {
-          grid[y + i * dy][x + i * dx] = word[i].toUpperCase();
-          items.push({ "row": y + i * dy, "col": x + i * dx, "letter": word[i].toUpperCase() })
-
+        if (orientation === 0) {
+          // Horizontal
+          startRow = Math.floor(Math.random() * size);
+          startCol = Math.floor(Math.random() * (size - wordLength + 1));
+          rowStep = 0;
+          colStep = 1;
+        } else if (orientation === 1) {
+          // Vertical
+          startRow = Math.floor(Math.random() * (size - wordLength + 1));
+          startCol = Math.floor(Math.random() * size);
+          rowStep = 1;
+          colStep = 0;
+        } else if (orientation === 2) {
+          // Diagonal up
+          startRow = Math.floor(Math.random() * (size - wordLength + 1) + wordLength - 1);
+          startCol = Math.floor(Math.random() * (size - wordLength + 1));
+          rowStep = -1;
+          colStep = 1;
+        } else {
+          // Diagonal down
+          startRow = Math.floor(Math.random() * (size - wordLength + 1));
+          startCol = Math.floor(Math.random() * (size - wordLength + 1));
+          rowStep = 1;
+          colStep = 1;
         }
-      });
-      setHighlighted(JSON.stringify(items))
+
+        let validLocation = true;
+
+        // Check if the word fits in the grid at the chosen location and orientation
+        for (let i = 0; i < wordLength; i++) {
+          const row = startRow + i * rowStep;
+          const col = startCol + i * colStep;
+
+          if (grid[row][col] !== null && grid[row][col] !== word[i]) {
+            validLocation = false;
+            break;
+          }
+        }
+
+        // If the word fits, insert it into the grid and exit the loop
+        if (validLocation) {
+          for (let i = 0; i < wordLength; i++) {
+            const rowIndex = startRow + i * rowStep;
+            const colIndex = startCol + i * colStep;
+            const letter = word[i].toUpperCase()
+            grid[rowIndex][colIndex] = letter
+            highlightedItems.push(JSON.stringify({ rowIndex, colIndex, letter }))
+          }
+          break;
+        }
+        iterations++;
+      }
     }
 
-    // update the state with the new grid
-    setGrid(grid);
+    // fill the empty spaces with random letters
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        if (grid[i][j] == null) {
+          grid[i][j] = letters[Math.floor(Math.random() * letters.length)]
+        }
+      }
+    }
+
+    setHighlighted(highlightedItems)
+    setGrid(grid)
   }
+
 
   function downloadData(format) {
     let data;
@@ -112,24 +151,23 @@ const WordSearch = ({ words, size, charset, highlight }) => {
 
   // render the word search grid
   return (
-    // Main container for the grid
     <div className="flex flex-col items-center justify-center">
       <div className="flex flex-col items-center justify-center">
         {grid.map((row, rowIndex) => (
           // Container for each row in the grid
           <div key={rowIndex} className="w-screen flex flex-row items-center justify-center">
-            {row.map((item, colIndex) => (
+            {row.map((letter, colIndex) => (
               // Container for each cell in the grid
-              <div key={colIndex} className={`h-8 w-8 text-center text-black ${highlight ? highlighted.includes(JSON.stringify({ "row": rowIndex, "col": colIndex, "letter": item })) ? 'bg-blue-600' : 'bg-white' : 'bg-white'}`}>
-                {item.toUpperCase()}
+              <div key={colIndex} className={`h-8 w-8 text-center text-black ${highlight ? highlighted.includes(JSON.stringify({ rowIndex, colIndex, letter })) ? 'bg-blue-600' : 'bg-white' : 'bg-white'}`}>
+                {letter.toUpperCase()}
               </div>
             ))}
           </div>
         ))}
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-wrap gap-3">
         {words.map((word, index) => (
-          <div key={index}>{word}</div>
+          <div key={index}>{word.toUpperCase()}</div>
         ))}
       </div>
       <div className="flex gap-3">

@@ -15,7 +15,7 @@ function App() {
   const inputRefWords = useRef(null);
 
   const englishPattern = /^[a-zA-Z,]*$/;
-  const balochiPattern = /^[\u0600-\u06FF,\s]*$/;
+  const balochiPattern = /^[\u0600-\u06FF,]*$/;
 
 
 
@@ -49,9 +49,7 @@ function App() {
       setErrorWords(false)
       setWords(words.split(",").map(word => word.trim()));
     }
-
   };
-
 
   return (
     <div className="min-h-[100vh] min-w-[100vw] flex flex-col items-center content-center">
