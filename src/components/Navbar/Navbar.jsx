@@ -3,7 +3,7 @@ import { FaGithub } from 'react-icons/fa';
 
 const Navbar = () => {
   return (
-    <nav className="mb-[2%] h-[3rem] w-full py-1 shadow-xl bg-blue-600 text-white">
+    <nav className="mb-[2%] h-[3.5rem] w-full py-1 shadow-nav bg-blue-700 text-white">
        <div className="flex h-full items-center justify-between px-5">
           <div>
             <p className="text-xl font-bold dark:text-gray-200">WordSearch Generator</p>
