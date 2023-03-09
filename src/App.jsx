@@ -8,28 +8,15 @@ function App() {
   const [size, setSize] = useState(12);
   const [selectCharset, setCharset] = useState('balochi');
   const [highlight, setHighlight] = useState(false);
-  const [errorSize, setErrorSize] = useState(false);
   const [errorWords, setErrorWords] = useState(false);
   const [errorWordsMessage, setErrorWordsMessage] = useState('')
-  const inputRefSize = useRef(null);
   const inputRefWords = useRef(null);
 
   const englishPattern = /^[a-zA-Z,]*$/;
   const balochiPattern = /^[\u0600-\u06FF,]*$/;
 
-
-
   const handleClick = () => {
-    const size = parseInt(inputRefSize.current.value);
     const words = inputRefWords.current.value;
-
-    if (isNaN(size) || size < 5 || size > 50) {
-      setErrorSize(true);
-      return;
-    } else {
-      setErrorSize(false);
-      setSize(size);
-    }
 
     if (words.trim().length === 0) {
       setErrorWordsMessage("Words cannot be empty")
@@ -56,8 +43,14 @@ function App() {
       <Navbar />
       <div className="w-screen p-4">
         <div className="flex w-full flex-col gap-6 rounded-md bg-white bg-clip-border text-gray-700 shadow-md p-5">
-          <Input inputRef={inputRefSize} variant="static" label="Size" placeholder="Size" type="number" error={errorSize} />
-          {errorSize && <p className="text-sm text-red-500">Size must be an integer between 5 and 50 (inclusive)</p>}
+          <Select label="Size" value={size} onChange={(e) => { setSize(e) }}>
+            <Option value={10}>10x10</Option>
+            <Option value={12}>12x12</Option>
+            <Option value={15}>15x15</Option>
+            <Option value={18}>18x18</Option>
+            <Option value={20}>20x20</Option>
+            <Option value={25}>25x25</Option>
+          </Select>
           <Select label="Character set" value={selectCharset} onChange={(e) => { setCharset(e); inputRefWords.current.value = ""; setWords([]); setErrorWordsMessage(''); setErrorWords(false) }}>
             <Option value="english">English</Option>
             <Option value="balochi">بلوچی</Option>
