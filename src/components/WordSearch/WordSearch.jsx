@@ -146,7 +146,7 @@ const WordSearch = ({ words, size, charset, highlight }) => {
 
   // generate the word search grid when the component mounts or the props change
   useEffect(() => {
-    generateGrid(size, words, charset === 'balochi' ? charsets.balochi : charsets.english);
+    generateGrid(size, words, charset === 'Balochi' ? charsets.balochi : charsets.english);
   }, [size, words, charset]);
 
   // render the word search grid
@@ -158,14 +158,14 @@ const WordSearch = ({ words, size, charset, highlight }) => {
           <div key={rowIndex} className="w-screen flex flex-row items-center justify-center">
             {row.map((letter, colIndex) => (
               // Container for each cell in the grid
-              <div key={colIndex} className={`h-8 w-8 text-center text-black ${highlight ? highlighted.includes(JSON.stringify({ rowIndex, colIndex, letter })) ? 'bg-blue-600' : 'bg-white' : 'bg-white'}`}>
+              <div key={colIndex} className={`h-6 w-6 text-center text-black ${highlight ? highlighted.includes(JSON.stringify({ rowIndex, colIndex, letter })) ? 'bg-blue-600' : 'bg-white' : 'bg-white'}`}>
                 {letter.toUpperCase()}
               </div>
             ))}
           </div>
         ))}
       </div>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 mt-3">
         {words.map((word, index) => (
           <div key={index}>{word.toUpperCase()}</div>
         ))}

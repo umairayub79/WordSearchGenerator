@@ -1,85 +1,191 @@
 import { useState, useEffect, useRef } from "react";
 import Navbar from "./components/Navbar/Navbar";
 import WordSearch from "./components/WordSearch/WordSearch";
-import { Button, Input, Select, Option, Checkbox } from "@material-tailwind/react";
+import {
+  Button,
+  Input,
+  Select,
+  Option,
+  Card,
+  CardBody,
+  CardFooter,
+  Alert,
+  Typography,
+  Checkbox,
+  Chip,
+} from "@material-tailwind/react";
 
 function App() {
   const [words, setWords] = useState([]);
   const [size, setSize] = useState("12");
-  const [selectCharset, setCharset] = useState('balochi');
-  const [highlight, setHighlight] = useState(false);
-  const [errorWords, setErrorWords] = useState(false);
-  const [inputDirection, setInputDirection] = useState("rtl")
-  const [errorWordsMessage, setErrorWordsMessage] = useState('')
+  const [charset, setCharset] = useState("Balochi");
+  const [highlightWords, setHighlightWords] = useState(false);
+  const [errorInWords, setErrorInWords] = useState(false);
+  const [inputDirection, setInputDirection] = useState("rtl");
+  const [errorWordsMessage, setErrorWordsMessage] = useState("");
+  const [renderGrid, setRenderGrid] = useState(false);
   const inputRefWords = useRef(null);
 
   const englishPattern = /^[a-zA-Z,]*$/;
   const balochiPattern = /^[\u0600-\u06FF,]*$/;
 
-  const handleClick = () => {
-    const words = inputRefWords.current.value;
+  const handleKeyPress = (event) => {
+    const value = inputRefWords.current.value.trim().toUpperCase();
+    if (event.key === "Enter" && value !== "" && !words.includes(value)) {
+      const pattern = charset === "English" ? englishPattern : balochiPattern;
+      if (!pattern.test(value)) {
+        setErrorWordsMessage(
+          `Words may only contain ${charset} letters (No Spaces)`
+        );
 
-    if (words.trim().length === 0) {
-      setErrorWordsMessage("Words cannot be empty")
-      setErrorWords(true);
-      return;
-    } else {
-      const pattern = selectCharset === 'english' ? englishPattern : balochiPattern;
-      if (!pattern.test(words.trim())) {
-        if (selectCharset === 'english') {
-          setErrorWordsMessage("Words may only contain English letters")
-        } else {
-          setErrorWordsMessage("Words may only contain Balochi letters")
-        }
-        setErrorWords(true);
+        setErrorInWords(true);
         return;
       }
-      setErrorWords(false)
-      setWords(words.split(",").map(word => word.trim()));
+      setErrorInWords(false);
+      setWords([...words, value.trim()]);
+      inputRefWords.current.value = "";
     }
   };
 
-  const handleChange = (e) => {
-    inputRefWords.current.value = "";
-    setCharset(e); 
-    setWords([]);
-    setErrorWordsMessage('');
-    setErrorWords(false)
-    if (e == "balochi") {
-      setInputDirection("rtl")
-    } else {
-      setInputDirection("ltr")
+  const handleDelete = (wordToDelete) => {
+    setWords(words.filter((word) => word !== wordToDelete));
+    if (words.length <= 1) {
+      setRenderGrid(false)
     }
-  }
+  };
+
+  const handleClick = () => {
+    if (words.length > 0) {
+      setRenderGrid(true);
+    } else {
+      setRenderGrid(false);
+      setErrorWordsMessage("Words cannot be empty");
+      setErrorInWords(true);
+      return;
+    }
+  };
+
+  const handleCharsetChange = (e) => {
+    inputRefWords.current.value = "";
+    setCharset(e);
+    setWords([]);
+    setErrorWordsMessage("");
+    setErrorInWords(false);
+    if (e == "Balochi") {
+      setInputDirection("rtl");
+    } else {
+      setInputDirection("ltr");
+    }
+  };
 
   return (
     <div className="min-h-[100vh] min-w-[100vw] flex flex-col items-center content-center">
       <Navbar />
       <div className="w-screen p-4">
-        <div className="flex w-full flex-col gap-6 rounded-md bg-white bg-clip-border text-gray-700 shadow-md p-5">
-          <Select label="Size" value={size} onChange={(e) => { setSize(e) }}>
-            <Option value={"10"}>10x10</Option>
-            <Option value={"12"}>12x12</Option>
-            <Option value={"15"}>15x15</Option>
-            <Option value={"18"}>18x18</Option>
-            <Option value={"20"}>20x20</Option>
-            <Option value={"25"}>25x25</Option>
-          </Select>
-          <Select label="Character set" value={selectCharset} onChange={handleChange}>
-            <Option value="english">English</Option>
-            <Option value="balochi">بلوچی</Option>
-          </Select>
-          <Input dir={inputDirection} inputRef={inputRefWords} variant="standard" label="Add words separated by commas" error={errorWords} />
-          {errorWords && <p className="text-sm text-red-500">{errorWordsMessage}</p>}
-          <Button className="mt-10" onClick={handleClick}>
-            Create
-          </Button>
-          <Checkbox color="blue" label="Highlight words" onChange={(e) => setHighlight(e.target.checked)} checked={highlight} />
-        </div>
+        <Card className="w-full shadow-md">
+          <CardBody className="flex w-full flex-col gap-6">
+            <Select
+              label="Size"
+              value={size}
+              onChange={(e) => {
+                setSize(e);
+              }}
+            >
+              <Option value={"10"}>10x10</Option>
+              <Option value={"12"}>12x12</Option>
+              <Option value={"15"}>15x15</Option>
+              <Option value={"18"}>18x18</Option>
+              <Option value={"20"}>20x20</Option>
+              <Option value={"25"}>25x25</Option>
+            </Select>
+
+            <Select
+              label="Character set"
+              value={charset}
+              onChange={handleCharsetChange}
+            >
+              <Option value={"English"}>English</Option>
+              <Option value={"Balochi"}>بلوچی</Option>
+            </Select>
+
+            <Input
+              dir={inputDirection}
+              inputRef={inputRefWords}
+              variant="standard"
+              label="Type a word and press Enter"
+              onKeyPress={handleKeyPress}
+              error={errorInWords}
+            />
+            {errorInWords && (
+              <p className="text-sm text-red-500">{errorWordsMessage}</p>
+            )}
+            <div className="flex flex-wrap">
+              {words.map((chip) => (
+                <Chip
+                  variant="gradient"
+                  value={chip}
+                  dismissible={{
+                    onClose: () => handleDelete(chip),
+                  }}
+                  className="m-1"
+                />
+              ))}
+            </div>
+          </CardBody>
+          <CardFooter className="mt-10 p-0">
+            <Button
+              size="lg"
+              className="text-white hover:scale-[1.02] focus:scale-[1.02] active:scale-100"
+              ripple={false}
+              fullWidth={true}
+              onClick={handleClick}
+            >
+              Create
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
-      <div className="flex w-full flex-col rounded-md bg-clip-border text-gray-700 shadow-md m-10 p-5">
-        {words.length > 0 ? <WordSearch size={parseInt(size)} words={words} charset={selectCharset} highlight={highlight} /> : <p>Wordsearch not created yet <br /> Choose options and click Create to generate a wordsearch.</p>}
-      </div>
+      <Card className="w-full shadow-md m-10 p-5">
+        {renderGrid ? (
+          <>
+            <Checkbox
+              color="blue"
+              label="Highlight words"
+              onChange={(e) => setHighlightWords(e.target.checked)}
+              checked={highlightWords}
+            />
+            <WordSearch
+              size={parseInt(size)}
+              words={words}
+              charset={charset}
+              highlight={highlightWords}
+            />
+          </>
+        ) : (
+          <Alert
+            color="blue"
+            icon={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="h-6 w-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            }
+          >
+            Word search not created yet <br /> Choose options and click Create
+            to generate a wordsearch.
+          </Alert>
+        )}
+      </Card>
     </div>
   );
 }
