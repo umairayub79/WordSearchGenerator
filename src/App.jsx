@@ -67,6 +67,7 @@ function App() {
 
   const handleCharsetChange = (e) => {
     inputRefWords.current.value = "";
+    setRenderGrid(false);
     setCharset(e);
     setWords([]);
     setErrorWordsMessage("");
