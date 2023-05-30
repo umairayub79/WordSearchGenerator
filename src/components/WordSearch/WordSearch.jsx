@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@material-tailwind/react"
 import { MdDownload } from "react-icons/md"
 import charsets from "../../constants/Charsets.js"
+
 const WordSearch = ({ words, size, charset, highlight }) => {
 
   const [highlighted, setHighlighted] = useState([]); // state to store found words
   const [grid, setGrid] = useState([]); // state to store the word search grid
-
+  const [sizeError, setSizeError] = useState(false); // state to store the word search grid
+  const [errorMessage, setErrorMessage] = useState("")
   // function to generate a word search grid
   function generateGrid(size, words, letters) {
     const grid = Array.from(Array(size), () => new Array(size).fill(null));
@@ -17,7 +19,14 @@ const WordSearch = ({ words, size, charset, highlight }) => {
       const wordLength = word.length;
       const maxIterations = 1000;
       let iterations = 0;
-
+      if (wordLength > size){
+        setErrorMessage(`Word length must not exceed ${size} characters. Word: ${word}`)
+        setSizeError(true)
+        return;
+      }else {
+        setErrorMessage("")
+        setSizeError(false)
+      }
       while (iterations < maxIterations) {
         const orientation = Math.floor(Math.random() * 4); // 0 = horizontal, 1 = vertical, 2 = diagonal up, 3 = diagonal down
         let startRow, startCol, rowStep, colStep;
@@ -151,26 +160,40 @@ const WordSearch = ({ words, size, charset, highlight }) => {
 
   // render the word search grid
   return (
-    <div className="flex flex-col items-center justify-center">
-      <div className="flex flex-col items-center justify-center">
-        {grid.map((row, rowIndex) => (
-          // Container for each row in the grid
-          <div key={rowIndex} className="w-screen flex flex-row items-center justify-center">
-            {row.map((letter, colIndex) => (
-              // Container for each cell in the grid
-              <div key={colIndex} className={`h-6 w-6 text-center text-black ${highlight ? highlighted.includes(JSON.stringify({ rowIndex, colIndex, letter })) ? 'bg-blue-600' : 'bg-white' : 'bg-white'}`}>
-                {letter.toUpperCase()}
+    <div className="w-full flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center max-w-full">
+        {
+          sizeError ? (<p className="text-red-500">{errorMessage}</p>) : (
+            grid.map((row, rowIndex) => (
+              // Container for each row in the grid
+              <div key={rowIndex} className="flex flex-row items-center justify-center max-w-full">
+                {row.map((letter, colIndex) => (
+                  // Container for each cell in the grid
+                  <div
+                    key={colIndex}
+                    className={`h-6 w-6 border text-center text-black ${highlight
+                        ? highlighted.includes(
+                          JSON.stringify({ rowIndex, colIndex, letter })
+                        )
+                          ? 'bg-blue-600'
+                          : 'bg-white'
+                        : 'bg-white'
+                      }`}
+                  >
+                    {letter.toUpperCase()}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ))}
+            ))
+          )
+        }
       </div>
       <div className="flex flex-wrap gap-3 mt-3">
         {words.map((word, index) => (
           <div key={index}>{word.toUpperCase()}</div>
         ))}
       </div>
-      <div className="flex gap-3">
+      <div className="flex flex-col md:flex-row gap-3 mt-3">
         <Button className="flex items-center mt-3" onClick={() => downloadData("text")}>
           <MdDownload className="h-5 w-5" />
           Download TEXT

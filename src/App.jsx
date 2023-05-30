@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Navbar from "./components/Navbar/Navbar";
 import WordSearch from "./components/WordSearch/WordSearch";
 import {
@@ -10,7 +10,6 @@ import {
   CardBody,
   CardFooter,
   Alert,
-  Typography,
   Checkbox,
   Chip,
 } from "@material-tailwind/react";
@@ -37,7 +36,11 @@ function App() {
         setErrorWordsMessage(
           `Words may only contain ${charset} letters (No Spaces)`
         );
-
+        setErrorInWords(true);
+        return;
+      }
+      if (value.length > size) {
+        setErrorWordsMessage(`The value must not exceed ${size} characters.`);
         setErrorInWords(true);
         return;
       }
@@ -80,10 +83,10 @@ function App() {
   };
 
   return (
-    <div className="min-h-[100vh] min-w-[100vw] flex flex-col items-center content-center">
+    <div className="min-h-[100vh] min-w-[100vw] max-w-[100vw] flex flex-col items-center content-center">
       <Navbar />
-      <div className="w-screen p-4">
-        <Card className="w-full shadow-md">
+      <div className="flex flex-col lg:flex-row p-4 gap-2 w-screen">
+        <Card className="w-full lg:w-1/2 shadow-lg p-5">
           <CardBody className="flex w-full flex-col gap-6">
             <Select
               label="Size"
@@ -145,48 +148,49 @@ function App() {
             </Button>
           </CardFooter>
         </Card>
-      </div>
-      <Card className="w-full shadow-md m-10 p-5">
-        {renderGrid ? (
-          <>
-            <Checkbox
+
+        <Card className="w-full lg:w-1/2 shadow-lg p-5">
+          {renderGrid ? (
+            <>
+              <Checkbox
+                color="blue"
+                label="Highlight words"
+                onChange={(e) => setHighlightWords(e.target.checked)}
+                checked={highlightWords}
+              />
+              <WordSearch
+                size={parseInt(size)}
+                words={words}
+                charset={charset}
+                highlight={highlightWords}
+              />
+            </>
+          ) : (
+            <Alert
               color="blue"
-              label="Highlight words"
-              onChange={(e) => setHighlightWords(e.target.checked)}
-              checked={highlightWords}
-            />
-            <WordSearch
-              size={parseInt(size)}
-              words={words}
-              charset={charset}
-              highlight={highlightWords}
-            />
-          </>
-        ) : (
-          <Alert
-            color="blue"
-            icon={
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="h-6 w-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            }
-          >
-            Word search not created yet <br /> Choose options and click Create
-            to generate a wordsearch.
-          </Alert>
-        )}
-      </Card>
+              icon={
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  className="h-6 w-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              }
+            >
+              Word search not created yet <br /> Choose options and click Create
+              to generate a wordsearch.
+            </Alert>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }
