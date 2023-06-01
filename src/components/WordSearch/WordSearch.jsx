@@ -3,7 +3,7 @@ import { Button } from "@material-tailwind/react"
 import { MdDownload } from "react-icons/md"
 import charsets from "../../constants/Charsets.js"
 
-const WordSearch = ({ words, size, charset, highlight }) => {
+const WordSearch = ({ words, size, charset, highlight, title }) => {
 
   const [highlighted, setHighlighted] = useState([]); // state to store found words
   const [grid, setGrid] = useState([]); // state to store the word search grid
@@ -19,11 +19,11 @@ const WordSearch = ({ words, size, charset, highlight }) => {
       const wordLength = word.length;
       const maxIterations = 1000;
       let iterations = 0;
-      if (wordLength > size){
+      if (wordLength > size) {
         setErrorMessage(`Word length must not exceed ${size} characters. Word: ${word}`)
         setSizeError(true)
         return;
-      }else {
+      } else {
         setErrorMessage("")
         setSizeError(false)
       }
@@ -98,29 +98,9 @@ const WordSearch = ({ words, size, charset, highlight }) => {
     setGrid(grid)
   }
 
-
-  function downloadData(format) {
-    let data;
-    let contentType;
-    let fileExtension;
-    if (format === "text") {
-      const wordsearchString = grid.map(row => row.join(" ")).join("\n");
-      const textFileString = `${wordsearchString}\n\n${words.join("\n")}`;
-      data = textFileString;
-      contentType = "text/plain;charset=utf-8";
-      fileExtension = ".txt";
-    } else if (format === "json") {
-      data = { grid, words };
-      data = JSON.stringify(data, null, 2);
-      contentType = "application/json";
-      fileExtension = ".json";
-    } else {
-      console.error(`Invalid format specified: ${format}`);
-      return;
-    }
-
+  const getTimeStamp = () => {
     const now = new Date();
-    const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, "0")}${now
+    return `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, "0")}${now
       .getDate()
       .toString()
       .padStart(2, "0")}-${now
@@ -130,7 +110,29 @@ const WordSearch = ({ words, size, charset, highlight }) => {
           .getSeconds()
           .toString()
           .padStart(2, "0")}`;
-    const filename = `WordSearch-${timestamp}${fileExtension}`;
+  }
+
+  function downloadData(format) {
+    let data;
+    let contentType;
+    let fileExtension;
+    if (format === "text") {
+      const wordsearchString = grid.map(row => row.join(" ")).join("\n");
+      const textFileString = `${title}\n\n${wordsearchString}\n\n${words.join("\n")}`;
+      data = textFileString;
+      contentType = "text/plain;charset=utf-8";
+      fileExtension = ".txt";
+    } else if (format === "json") {
+      data = { title, grid, words };
+      data = JSON.stringify(data, null, 2);
+      contentType = "application/json";
+      fileExtension = ".json";
+    } else {
+      console.error(`Invalid format specified: ${format}`);
+      return;
+    }
+
+    const filename = `WordSearch-${title != "" ? title : getTimeStamp()}${fileExtension}`;
 
     const blob = new Blob([data], { type: contentType });
     const link = document.createElement("a");
@@ -152,6 +154,102 @@ const WordSearch = ({ words, size, charset, highlight }) => {
     }
   }
 
+  function downloadImage() {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    let cellWidth, cellHeight, cellTextSize = 0
+    switch (size) {
+      case 10:
+        // code
+        cellWidth = 80
+        cellHeight = 80
+        break;
+      case 12:
+        cellWidth = 65
+        cellHeight = 65
+        break;
+      case 15:
+        cellWidth = 55
+        cellHeight = 55
+        break;
+      case 18:
+        cellWidth = 50
+        cellHeight = 50
+        break;
+      case 20:
+        cellWidth = 45
+        cellHeight = 45
+        break;
+      case 25:
+        cellWidth = 37
+        cellHeight = 37
+        break;
+
+      default:
+        // code
+        cellWidth = 6
+        cellHeight = 6
+    }
+
+
+    const gridWidth = cellWidth * size;
+    const gridHeight = cellHeight * size;
+    canvas.width = 1180;
+    canvas.height = 1080;
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // calculate starting point for grid to center it horizontally
+    const gridStartX = 40;
+    const gridStartY = 100;
+    console.log(gridHeight, gridWidth, canvas.width, canvas.height, gridStartX)
+    // draw the grid
+    for (let row = 0; row < size; row++) {
+      for (let col = 0; col < size; col++) {
+        ctx.fillStyle = "black";
+        ctx.strokeRect(
+          gridStartX + col * cellWidth,
+          gridStartY + row * cellHeight,
+          cellWidth,
+          cellHeight
+        );
+        ctx.font = "32px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(
+          grid[row][col],
+          gridStartX + col * cellWidth + cellWidth / 2,
+          gridStartY + row * cellHeight + cellHeight / 2
+        );
+      }
+    }
+
+    // draw the words below the grid in a table
+    ctx.fillStyle = "black";
+    ctx.font = "bold 34px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(title, 120, 60)
+
+    const tableTop = 150;
+    const tableLeft = canvas.width - 120;
+    const rowHeight = 30;
+
+    ctx.font = "bold 22px sans-serif";
+    for (let i = 0; i < words.length; i++) {
+      const y = tableTop + (i + 1) * rowHeight;
+      ctx.fillText(words[i], tableLeft + 10, y - rowHeight / 2);
+    }
+
+    // download the image
+    const dataURL = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.download = `wordsearch-${title != "" ? title : getTimeStamp()}.png`;
+    link.href = dataURL;
+    link.click();
+  }
 
   // generate the word search grid when the component mounts or the props change
   useEffect(() => {
@@ -160,7 +258,7 @@ const WordSearch = ({ words, size, charset, highlight }) => {
 
   // render the word search grid
   return (
-    <div className="w-full flex flex-col items-center justify-center">
+    <div className="w-full max-w-full flex flex-col items-center justify-center">
       <div className="flex flex-col items-center justify-center max-w-full">
         {
           sizeError ? (<p className="text-red-500">{errorMessage}</p>) : (
@@ -172,12 +270,12 @@ const WordSearch = ({ words, size, charset, highlight }) => {
                   <div
                     key={colIndex}
                     className={`h-6 w-6 border text-center text-black ${highlight
-                        ? highlighted.includes(
-                          JSON.stringify({ rowIndex, colIndex, letter })
-                        )
-                          ? 'bg-blue-600'
-                          : 'bg-white'
+                      ? highlighted.includes(
+                        JSON.stringify({ rowIndex, colIndex, letter })
+                      )
+                        ? 'bg-blue-600'
                         : 'bg-white'
+                      : 'bg-white'
                       }`}
                   >
                     {letter.toUpperCase()}
@@ -201,6 +299,10 @@ const WordSearch = ({ words, size, charset, highlight }) => {
         <Button className="flex items-center mt-3" onClick={() => downloadData("json")}>
           <MdDownload className="h-5 w-5" />
           Download JSON
+        </Button>
+        <Button className="flex items-center mt-3" onClick={() => downloadImage()}>
+          <MdDownload className="h-5 w-5" />
+          Download IMAGE
         </Button>
       </div>
     </div>

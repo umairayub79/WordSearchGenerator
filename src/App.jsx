@@ -15,6 +15,7 @@ import {
 } from "@material-tailwind/react";
 
 function App() {
+  const [title, setTitle] = useState("")
   const [words, setWords] = useState([]);
   const [size, setSize] = useState("12");
   const [charset, setCharset] = useState("Balochi");
@@ -83,11 +84,17 @@ function App() {
   };
 
   return (
-    <div className="min-h-[100vh] min-w-[100vw] max-w-[100vw] flex flex-col items-center content-center">
+    <div className="min-h-[100vh] min-w-[100vw] max-w-[100vw] flex flex-col items-center content-center bg-gray-100">
       <Navbar />
       <div className="flex flex-col lg:flex-row p-4 gap-2 w-screen">
         <Card className="w-full lg:w-1/2 shadow-lg p-5">
           <CardBody className="flex w-full flex-col gap-6">
+            <Input
+              variant="outlined"
+              label="Title"
+              onChange={(e) => setTitle(e.target.value)}
+            />
+
             <Select
               label="Size"
               value={size}
@@ -163,6 +170,7 @@ function App() {
                 words={words}
                 charset={charset}
                 highlight={highlightWords}
+                title={title}
               />
             </>
           ) : (
